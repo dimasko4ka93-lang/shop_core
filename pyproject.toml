@@ -1,0 +1,31 @@
+[tool.poetry]
+name = "ecommerce-homework"
+version = "0.1.0"
+description = "ДЗ: классы Product и Category"
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+packages = [{ include = "src" }]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0.0"
+pytest-cov = "^5.0.0"
+flake8 = "^7.0.0"
+black = "^24.0.0"
+isort = "^5.13.0"
+
+[tool.black]
+line-length = 120
+
+[tool.isort]
+profile = "black"
+line_length = 120
+
+[tool.pytest.ini_options]
+addopts = "--cov=src --cov-report=term-missing --cov-report=html"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

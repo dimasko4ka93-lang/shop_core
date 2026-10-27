@@ -1,0 +1,15 @@
+[
+  {
+    "name": "Смартфоны",
+    "description": "Описание категории",
+    "products": [
+      {"name": "Iphone 15", "description": "512GB", "price": 210000.0, "quantity": 8},
+      {"name": "Samsung", "description": "256GB", "price": 180000.0, "quantity": 5}
+    ]
+  },
+  {
+    "name": "Телевизоры",
+    "description": "Описание ТВ",
+    "products": []
+  }
+]
