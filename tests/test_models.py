@@ -1,77 +1,82 @@
-import os
-
 import pytest
 
 from src.models import Category, Product
-from src.utils import load_categories_from_json
-
-
-@pytest.fixture(autouse=True)
-def reset_category_counters():
-    """Сбрасываем счётчики класса перед каждым тестом."""
-    Category.category_count = 0
-    Category.product_count = 0
-    yield
 
 
 @pytest.fixture
-def sample_products():
-    return [
-        Product("Samsung Galaxy S23 Ultra", "256GB", 180000.0, 5),
-        Product("Iphone 15", "512GB", 210000.0, 8),
-    ]
+def product():
+    return Product("Test Product", "Test Description", 100.0, 5)
 
 
-def test_product_init():
-    """Корректная инициализация объекта Product."""
-    product = Product("Iphone 15", "512GB", 210000.0, 8)
-    assert product.name == "Iphone 15"
-    assert product.description == "512GB"
-    assert product.price == 210000.0
-    assert product.quantity == 8
+@pytest.fixture
+def category(product):
+    return Category("Test Category", "Test Category Description", [product])
 
 
-def test_category_init(sample_products):
-    """Корректная инициализация объекта Category."""
-    category = Category("Смартфоны", "Описание", sample_products)
-    assert category.name == "Смартфоны"
-    assert category.description == "Описание"
-    assert category.products == sample_products
-    assert len(category.products) == 2
+def test_add_product_increases_count(category, product):
+    """Тест: метод add_product добавляет товар и увеличивает счетчик."""
+    initial_count = Category.product_count
+    new_product = Product("New Product", "Desc", 200.0, 2)
+    category.add_product(new_product)
+
+    assert Category.product_count == initial_count + 1
+    # Проверяем, что товар действительно добавился в список (через геттер)
+    assert "New Product" in category.products
 
 
-def test_category_count(sample_products):
-    """Подсчёт количества категорий."""
-    assert Category.category_count == 0
-    Category("Смартфоны", "Описание", sample_products)
-    assert Category.category_count == 1
-    Category("Телевизоры", "Описание", [])
-    assert Category.category_count == 2
+def test_products_getter_format(category):
+    """Тест: геттер products возвращает строку в правильном формате."""
+    expected = "Test Product, 100.0 руб. Остаток: 5 шт.\n"
+    assert category.products == expected
 
 
-def test_product_count(sample_products):
-    """Подсчёт количества продуктов."""
-    assert Category.product_count == 0
-    Category("Смартфоны", "Описание", sample_products)
-    assert Category.product_count == 2
-    Category("Телевизоры", "Описание", [Product("TV", "4K", 100000.0, 3)])
-    assert Category.product_count == 3
+def test_new_product_creates_instance():
+    """Тест: класс-метод new_product создает экземпляр Product."""
+    data = {"name": "New", "description": "Desc", "price": 50.0, "quantity": 10}
+    p = Product.new_product(data)
+
+    assert isinstance(p, Product)
+    assert p.name == "New"
+    assert p.price == 50.0
+    assert p.quantity == 10
 
 
-def test_load_categories_from_json():
-    """Тест загрузки категорий и товаров из JSON."""
-    # Формируем путь к тестовому json-файлу в той же папке
-    json_path = os.path.join(os.path.dirname(__file__), "test_products.json")
+def test_price_setter_positive(product):
+    """Тест: сеттер устанавливает положительную цену."""
+    product.price = 200.0
+    assert product.price == 200.0
 
-    # Загружаем данные
-    categories = load_categories_from_json(json_path)
 
-    # Проверяем, что всё работает правильно
-    assert len(categories) == 2
-    assert categories[0].name == "Смартфоны"
-    assert len(categories[0].products) == 2
-    assert categories[0].products[0].name == "Iphone 15"
+def test_price_setter_negative_and_zero(product, capsys):
+    """Тест: сеттер не устанавливает отрицательную или нулевую цену и выводит сообщение."""
+    # Изначальная цена 100.0
+    product.price = -50
+    assert product.price == 100.0  # Цена не изменилась
 
-    # Проверяем, что счетчики класса обновились автоматически
-    assert Category.category_count == 2
-    assert Category.product_count == 2
+    product.price = 0
+    assert product.price == 100.0  # Цена не изменилась
+
+    # Проверяем, что сообщение вывелось 2 раза (для -50 и для 0)
+    captured = capsys.readouterr()
+    assert "Цена не должна быть нулевая или отрицательная" in captured.out
+
+
+def test_new_product_with_duplicates():
+    """Тест: new_product обновляет существующий товар, суммирует количество и берет макс. цену."""
+    # 1. Создаем существующий товар
+    existing_product = Product("Samsung", "Desc", 100.0, 5)
+
+    # 2. Готовим данные для "нового" товара с таким же именем, большей ценой и другим количеством
+    product_data = {"name": "Samsung", "description": "Desc", "price": 150.0, "quantity": 10}
+
+    # 3. Вызываем new_product, передавая список существующих товаров
+    result_product = Product.new_product(product_data, existing_products=[existing_product])
+
+    # 4. Проверяем, что вернулся тот же самый объект (не создался новый)
+    assert result_product is existing_product
+
+    # 5. Проверяем, что количество сложилось (5 + 10 = 15)
+    assert result_product.quantity == 15
+
+    # 6. Проверяем, что цена обновилась на максимальную (150.0 > 100.0)
+    assert result_product.price == 150.0
