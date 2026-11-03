@@ -4,34 +4,23 @@ from typing import List
 class Product:
     """Класс для описания товара в интернет-магазине."""
 
-    name: str
-    description: str
-    __price: float
-    quantity: int
-
     def __init__(self, name: str, description: str, price: float, quantity: int) -> None:
         self.name = name
         self.description = description
-        self.__price = price  # Теперь цена приватная
+        self.__price = price  # Приватный атрибут
         self.quantity = quantity
 
     @classmethod
     def new_product(cls, product_data: dict, existing_products: list = None) -> "Product":
-        """
-        Класс-метод для создания товара из словаря.
-        Если передан список existing_products, ищет дубликаты по имени.
-        """
+        """Класс-метод для создания товара из словаря."""
         if existing_products is not None:
             for existing_product in existing_products:
                 if existing_product.name == product_data["name"]:
-                    # Суммируем количество
                     existing_product.quantity += product_data["quantity"]
-                    # Выбираем максимальную цену
                     if product_data["price"] > existing_product.price:
                         existing_product.price = product_data["price"]
                     return existing_product
 
-        # Если дубликатов не найдено или список не передан, создаем новый товар
         return cls(
             name=product_data["name"],
             description=product_data["description"],
@@ -41,7 +30,7 @@ class Product:
 
     @property
     def price(self) -> float:
-        """Геттер для цены."""
+        """Геттер для приватного атрибута цены."""
         return self.__price
 
     @price.setter
@@ -51,7 +40,6 @@ class Product:
             print("Цена не должна быть нулевая или отрицательная")
         else:
             self.__price = new_price
-
 
 class Category:
     """Класс для описания категории товаров."""
