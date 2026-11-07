@@ -40,6 +40,26 @@ def test_new_product_creates_instance():
     assert p.price == 50.0
     assert p.quantity == 10
 
+    def test_product_str(product):
+        """Тест: строковое представление продукта."""
+        assert str(product) == "Test Product, 100.0 руб. Остаток: 5 шт."
+
+    def test_category_str(category):
+        """Тест: строковое представление категории."""
+        assert str(category) == "Test Category, количество продуктов: 5 шт."
+
+    def test_product_add():
+        """Тест: сложение двух продуктов = сумма произведений цены на количество."""
+        p1 = Product("A", "Desc", 100.0, 10)
+        p2 = Product("B", "Desc", 200.0, 2)
+        assert (p1 + p2) == 1400
+
+    def test_product_add_type_error():
+        """Тест: сложение с не-Product вызывает TypeError."""
+        p1 = Product("A", "Desc", 100.0, 10)
+        with pytest.raises(TypeError):
+            p1 + 10
+
 
 def test_price_setter_positive(product):
     """Тест: сеттер устанавливает положительную цену."""
