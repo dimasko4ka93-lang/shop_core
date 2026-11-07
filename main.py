@@ -24,6 +24,21 @@ if __name__ == "__main__":
     print(new_product.description)
     print(new_product.price)
     print(new_product.quantity)
+    print("--- Проверка __str__ для Product ---")
+    print(str(product1))
+    print(str(product2))
+    print(str(product3))
+
+    print("\n--- Проверка __str__ для Category ---")
+    print(str(category1))
+
+    print("\n--- Проверка геттера products (должен вернуть список строк) ---")
+    print(category1.products)
+
+    print("\n--- Проверка __add__ ---")
+    print(product1 + product2)
+    print(product1 + product3)
+    print(product2 + product3)
 
     new_product.price = 800
     print(new_product.price)

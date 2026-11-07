@@ -1,14 +1,20 @@
-from typing import List
-
 
 class Product:
-    """Класс для описания товара в интернет-магазине."""
-
-    def __init__(self, name: str, description: str, price: float, quantity: int) -> None:
+    def __init__(self, name: str, description: str, price: float, quantity: int):
         self.name = name
         self.description = description
-        self.__price = price  # Приватный атрибут
+        self.price = price
         self.quantity = quantity
+
+    # Задание 1
+    def __str__(self):
+        return f"{self.name}, {self.price} руб. Остаток: {self.quantity} шт."
+
+    # Задание 2
+    def __add__(self, other):
+        if not isinstance(other, Product):
+            raise TypeError("Складывать можно только объекты класса Product")
+        return (self.price * self.quantity) + (other.price * other.quantity)
 
     @classmethod
     def new_product(cls, product_data: dict, existing_products: list = None) -> "Product":
@@ -41,37 +47,26 @@ class Product:
         else:
             self.__price = new_price
 
+
 class Category:
-    """Класс для описания категории товаров."""
+    product_count = 0
 
-    name: str
-    description: str
-    __products: List[Product]
-
-    # Атрибуты класса — общие для всех объектов
-    category_count: int = 0
-    product_count: int = 0
-
-    def __init__(self, name: str, description: str, products: List[Product]) -> None:
+    def __init__(self, name: str, description: str, products: list):
         self.name = name
         self.description = description
-        self.__products = products  # Теперь список товаров приватный
-
-        # Автоматическое заполнение атрибутов класса при создании категории
-        Category.category_count += 1
-        # product_count теперь увеличивается только через add_product,
-        # но если мы передаем список при создании, логично учесть его:
-        Category.product_count += len(products)
-
-    def add_product(self, product: Product) -> None:
-        """Метод для добавления продукта в категорию."""
-        self.__products.append(product)
-        Category.product_count += 1
+        self.__products = products
 
     @property
     def products(self) -> str:
-        """Геттер для вывода списка товаров в виде строки."""
         result = ""
         for product in self.__products:
             result += f"{product.name}, {product.price} руб. Остаток: {product.quantity} шт.\n"
         return result
+
+    def __str__(self):
+        total_quantity = sum(product.quantity for product in self.__products)
+        return f"{self.name}, количество продуктов: {total_quantity} шт."
+
+    def add_product(self, product: Product) -> None:
+        self.__products.append(product)
+        Category.product_count += 1
