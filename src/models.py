@@ -16,6 +16,8 @@ class BaseProduct(ABC):
     """Абстрактный базовый класс для всех продуктов."""
 
     def __init__(self, name: str, description: str, price: float, quantity: int):
+        if quantity == 0:
+            raise ValueError("Товар с нулевым количеством не может быть добавлен")
         self.name = name
         self.description = description
         self.price = price
@@ -122,3 +124,11 @@ class Category:
             raise TypeError("В категорию можно добавлять только объекты класса Product или его наследников")
         self.__products.append(product)
         Category.product_count += 1
+
+    def middle_price(self) -> float:
+        """Подсчёт средней цены товаров в категории."""
+        try:
+            total = sum(product.price for product in self.__products)
+            return total / len(self.__products)
+        except ZeroDivisionError:
+            return 0
