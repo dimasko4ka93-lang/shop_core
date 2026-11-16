@@ -37,12 +37,17 @@ def test_add_product_increases_count(category):
     category.add_product(new_product)
 
     assert Category.product_count == initial_count + 1
-    assert "New Product" in category.products
+    # Проверяем, что товар в списке по имени
+    assert any(p.name == "New Product" for p in category.products)
 
 
 def test_products_getter_format(category):
-    expected = "Test Product, 100.0 руб. Остаток: 5 шт.\n"
-    assert category.products == expected
+    # Геттер теперь возвращает список объектов, а не строку
+    assert isinstance(category.products, list)
+    assert len(category.products) == 1
+    assert category.products[0].name == "Test Product"
+    assert category.products[0].price == 100.0
+    assert category.products[0].quantity == 5
 
 
 def test_new_product_creates_instance():
@@ -155,7 +160,8 @@ def test_add_product_and_smartphone_raises(product, smartphone):
 
 def test_add_product_valid(category, smartphone):
     category.add_product(smartphone)
-    assert "Samsung Galaxy S23 Ultra" in category.products
+    # Проверяем, что смартфон есть в списке по имени
+    assert any(p.name == "Samsung Galaxy S23 Ultra" for p in category.products)
 
 
 def test_add_product_invalid_raises(category):
@@ -166,3 +172,11 @@ def test_add_product_invalid_raises(category):
 def test_add_product_invalid_int_raises(category):
     with pytest.raises(TypeError):
         category.add_product(42)
+
+
+def test_mixin_prints_info(capsys):
+    """Тест: миксин печатает информацию о создании объекта."""
+    product = Product("Test", "Desc", 100.0, 5)
+    captured = capsys.readouterr()
+    assert "Создан объект Product(" in captured.out
+    assert product.name == "Test"  # ← добавили использование
