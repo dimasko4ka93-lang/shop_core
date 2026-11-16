@@ -1,6 +1,6 @@
 import pytest
 
-from src.models import Category, Product, Smartphone, LawnGrass
+from src.models import Category, LawnGrass, Product, Smartphone
 
 
 @pytest.fixture
@@ -107,8 +107,6 @@ def test_new_product_with_duplicates():
     assert result_product.price == 150.0
 
 
-# ---------- Тесты для наследников (Задание 1) ----------
-
 def test_smartphone_creation(smartphone):
     assert smartphone.name == "Samsung Galaxy S23 Ultra"
     assert smartphone.efficiency == 95.5
@@ -132,8 +130,6 @@ def test_lawn_grass_is_product(lawn_grass):
     assert isinstance(lawn_grass, Product)
 
 
-# ---------- Тесты для __add__ (Задание 2) ----------
-
 def test_add_same_type_smartphones():
     s1 = Smartphone("Samsung", "Desc", 1000.0, 2, 95.5, "S23", 256, "Black")
     s2 = Smartphone("Iphone", "Desc", 2000.0, 3, 98.2, "15", 512, "Gray")
@@ -155,8 +151,6 @@ def test_add_product_and_smartphone_raises(product, smartphone):
     with pytest.raises(TypeError):
         product + smartphone
 
-
-# ---------- Тесты для add_product (Задание 3) ----------
 
 def test_add_product_valid(category, smartphone):
     category.add_product(smartphone)
@@ -180,3 +174,23 @@ def test_mixin_prints_info(capsys):
     captured = capsys.readouterr()
     assert "Создан объект Product(" in captured.out
     assert product.name == "Test"  # ← добавили использование
+
+
+def test_product_zero_quantity_raises():
+    """Тест: создание Product с quantity=0 вызывает ValueError."""
+    with pytest.raises(ValueError, match="Товар с нулевым количеством не может быть добавлен"):
+        Product("Test", "Desc", 100.0, 0)
+
+
+def test_middle_price_with_products():
+    """Тест: middle_price возвращает среднюю цену."""
+    p1 = Product("A", "Desc", 100.0, 1)
+    p2 = Product("B", "Desc", 200.0, 2)
+    category = Category("Test", "Desc", [p1, p2])
+    assert category.middle_price() == 150.0
+
+
+def test_middle_price_empty_category():
+    """Тест: middle_price для пустой категории возвращает 0."""
+    category = Category("Empty", "Desc", [])
+    assert category.middle_price() == 0
