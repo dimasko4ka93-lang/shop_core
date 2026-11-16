@@ -1,6 +1,6 @@
 import pytest
 
-from src.models import Category, Product
+from src.models import Category, Product, Smartphone, LawnGrass
 
 
 @pytest.fixture
@@ -13,25 +13,39 @@ def category(product):
     return Category("Test Category", "Test Category Description", [product])
 
 
-def test_add_product_increases_count(category, product):
-    """Тест: метод add_product добавляет товар и увеличивает счетчик."""
+@pytest.fixture
+def smartphone():
+    return Smartphone(
+        "Samsung Galaxy S23 Ultra", "256GB, Серый цвет, 200MP камера",
+        180000.0, 5, 95.5, "S23 Ultra", 256, "Серый"
+    )
+
+
+@pytest.fixture
+def lawn_grass():
+    return LawnGrass(
+        "Газонная трава", "Элитная трава для газона",
+        500.0, 20, "Россия", "7 дней", "Зеленый"
+    )
+
+
+# ---------- Базовые тесты ----------
+
+def test_add_product_increases_count(category):
     initial_count = Category.product_count
     new_product = Product("New Product", "Desc", 200.0, 2)
     category.add_product(new_product)
 
     assert Category.product_count == initial_count + 1
-    # Проверяем, что товар действительно добавился в список (через геттер)
     assert "New Product" in category.products
 
 
 def test_products_getter_format(category):
-    """Тест: геттер products возвращает строку в правильном формате."""
     expected = "Test Product, 100.0 руб. Остаток: 5 шт.\n"
     assert category.products == expected
 
 
 def test_new_product_creates_instance():
-    """Тест: класс-метод new_product создает экземпляр Product."""
     data = {"name": "New", "description": "Desc", "price": 50.0, "quantity": 10}
     p = Product.new_product(data)
 
@@ -40,63 +54,115 @@ def test_new_product_creates_instance():
     assert p.price == 50.0
     assert p.quantity == 10
 
-    def test_product_str(product):
-        """Тест: строковое представление продукта."""
-        assert str(product) == "Test Product, 100.0 руб. Остаток: 5 шт."
 
-    def test_category_str(category):
-        """Тест: строковое представление категории."""
-        assert str(category) == "Test Category, количество продуктов: 5 шт."
+def test_product_str(product):
+    assert str(product) == "Test Product, 100.0 руб. Остаток: 5 шт."
 
-    def test_product_add():
-        """Тест: сложение двух продуктов = сумма произведений цены на количество."""
-        p1 = Product("A", "Desc", 100.0, 10)
-        p2 = Product("B", "Desc", 200.0, 2)
-        assert (p1 + p2) == 1400
 
-    def test_product_add_type_error():
-        """Тест: сложение с не-Product вызывает TypeError."""
-        p1 = Product("A", "Desc", 100.0, 10)
-        with pytest.raises(TypeError):
-            p1 + 10
+def test_category_str(category):
+    assert str(category) == "Test Category, количество продуктов: 5 шт."
+
+
+def test_product_add():
+    p1 = Product("A", "Desc", 100.0, 10)
+    p2 = Product("B", "Desc", 200.0, 2)
+    assert (p1 + p2) == 1400
+
+
+def test_product_add_type_error():
+    p1 = Product("A", "Desc", 100.0, 10)
+    with pytest.raises(TypeError):
+        p1 + 10
 
 
 def test_price_setter_positive(product):
-    """Тест: сеттер устанавливает положительную цену."""
     product.price = 200.0
     assert product.price == 200.0
 
 
 def test_price_setter_negative_and_zero(product, capsys):
-    """Тест: сеттер не устанавливает отрицательную или нулевую цену и выводит сообщение."""
-    # Изначальная цена 100.0
     product.price = -50
-    assert product.price == 100.0  # Цена не изменилась
+    assert product.price == 100.0
 
     product.price = 0
-    assert product.price == 100.0  # Цена не изменилась
+    assert product.price == 100.0
 
-    # Проверяем, что сообщение вывелось 2 раза (для -50 и для 0)
     captured = capsys.readouterr()
     assert "Цена не должна быть нулевая или отрицательная" in captured.out
 
 
 def test_new_product_with_duplicates():
-    """Тест: new_product обновляет существующий товар, суммирует количество и берет макс. цену."""
-    # 1. Создаем существующий товар
     existing_product = Product("Samsung", "Desc", 100.0, 5)
-
-    # 2. Готовим данные для "нового" товара с таким же именем, большей ценой и другим количеством
     product_data = {"name": "Samsung", "description": "Desc", "price": 150.0, "quantity": 10}
 
-    # 3. Вызываем new_product, передавая список существующих товаров
     result_product = Product.new_product(product_data, existing_products=[existing_product])
 
-    # 4. Проверяем, что вернулся тот же самый объект (не создался новый)
     assert result_product is existing_product
-
-    # 5. Проверяем, что количество сложилось (5 + 10 = 15)
     assert result_product.quantity == 15
-
-    # 6. Проверяем, что цена обновилась на максимальную (150.0 > 100.0)
     assert result_product.price == 150.0
+
+
+# ---------- Тесты для наследников (Задание 1) ----------
+
+def test_smartphone_creation(smartphone):
+    assert smartphone.name == "Samsung Galaxy S23 Ultra"
+    assert smartphone.efficiency == 95.5
+    assert smartphone.model == "S23 Ultra"
+    assert smartphone.memory == 256
+    assert smartphone.color == "Серый"
+
+
+def test_lawn_grass_creation(lawn_grass):
+    assert lawn_grass.name == "Газонная трава"
+    assert lawn_grass.country == "Россия"
+    assert lawn_grass.germination_period == "7 дней"
+    assert lawn_grass.color == "Зеленый"
+
+
+def test_smartphone_is_product(smartphone):
+    assert isinstance(smartphone, Product)
+
+
+def test_lawn_grass_is_product(lawn_grass):
+    assert isinstance(lawn_grass, Product)
+
+
+# ---------- Тесты для __add__ (Задание 2) ----------
+
+def test_add_same_type_smartphones():
+    s1 = Smartphone("Samsung", "Desc", 1000.0, 2, 95.5, "S23", 256, "Black")
+    s2 = Smartphone("Iphone", "Desc", 2000.0, 3, 98.2, "15", 512, "Gray")
+    assert (s1 + s2) == 8000  # 1000*2 + 2000*3
+
+
+def test_add_same_type_lawn_grass():
+    g1 = LawnGrass("Grass1", "Desc", 500.0, 2, "Россия", "7 дней", "Зеленый")
+    g2 = LawnGrass("Grass2", "Desc", 450.0, 3, "США", "5 дней", "Темно-зеленый")
+    assert (g1 + g2) == 2350  # 500*2 + 450*3
+
+
+def test_add_different_types_raises(smartphone, lawn_grass):
+    with pytest.raises(TypeError):
+        smartphone + lawn_grass
+
+
+def test_add_product_and_smartphone_raises(product, smartphone):
+    with pytest.raises(TypeError):
+        product + smartphone
+
+
+# ---------- Тесты для add_product (Задание 3) ----------
+
+def test_add_product_valid(category, smartphone):
+    category.add_product(smartphone)
+    assert "Samsung Galaxy S23 Ultra" in category.products
+
+
+def test_add_product_invalid_raises(category):
+    with pytest.raises(TypeError):
+        category.add_product("Not a product")
+
+
+def test_add_product_invalid_int_raises(category):
+    with pytest.raises(TypeError):
+        category.add_product(42)
